@@ -1,4 +1,4 @@
-zqso_only_catalog.mat
+zqso_smallz_catalog.mat
 -----------
 
 This file contains basic information related to each line of sight
@@ -19,7 +19,7 @@ variables are:
   line of sight was searched for DLAs. For a nonzero value, the
   individual bits of the flags may be inspected:
 
-  - bit 0 (least significant): 1 indicates z_QSO < 2.15
+  - bit 0 (least significant): 1 indicates z_QSO < 1.9 and z_QSO > 2.15
   - bit 1: 1 indicates BAL QSO (see `bal_visual_flags`)
   - bit 2: 1 indicates spectrum could not be normalized (no nonmasked
     pixels in [1310, 1325] Angstroms QSO rest)
@@ -47,58 +47,12 @@ variables are:
 * `z_qsos`: visual inspection QSO redshift from DR12Q (DR12Q catalog,
   variable `Z_VI`)
 
-The `zqso_only_catalog.mat` file also contains data relating to the results of
-previous DLA searches, contained in a series of hash tables. Each
-table has three keys corresponding to the search:
-(Note: the code provided on GitHub: https://github.com/sbird/gp_qso_redshift
-does not include DLA catalogue. The catalog file here runs on both zestiamtion
-and DLA finding, that's the discrepancy.)
-
-* `dr9q_concordance`, containing the concordance catalog from the
-  [BOSS DR9 Lyman-alpha Forest Catalog and Sample](https://www.sdss3.org/dr9/algorithms/lyaf_sample.php)
-  ([Lee, et al. 2013](http://adsabs.harvard.edu/abs/2013AJ....145...69L)),
-* `dr12q_visual`, containing the results of a visual survey (extracted
-   from
-   ([Noterdaeme DR12 catalog v2, 2016](http://www2.iap.fr/users/noterdae/DLA/DLA_DR12_v2.tgz))),
-* `dr12q_noterdaeme`, containing the results of the method from
-   ([Noterdaeme et al., 2012c](http://adsabs.harvard.edu/abs/2012A%26A...547L...1N)),
-   available at
-   ([Noterdaeme DR12 catalog v2, 2016](http://www2.iap.fr/users/noterdae/DLA/DLA_DR12_v2.tgz)).
-
-The hash tables are:
-
-* `los_inds`: Each key maps to a binary vector of length N. A value
-  of 1 indicates the line of sight was considered in the corresponding
-  search.
-* `dla_inds`: Each key maps to a binary vector of length N. A value
-  of 1 indicates the line of sight was considered in the corresponding
-  search and flagged as containing a DLA.
-* `z_dlas`: Each key maps to a map of length N. The entries for which
-  `dla_inds(key)(qso_ind) == 0`, that is, the lines of sight either
-  not considered by the DLA search or considered but not flagged as
-  containing a DLA, are empty. The others contain a list of absorber
-  redshifts for any DLAs flagged along the line of sight by the
-  search. For the key `dr12q_visual`, the flagged DLAs have absorber
-  redshift coded as the QSO redshift, as the visual inspection did not
-  record the absorber redshift. In the case of lines of sight
-  containing multiple flagged DLAs, the order of the objects matches
-  the order in `log_nhis` below.
-* `log_nhis`: Each key maps to a map of length N. The entries for
-  which `dla_inds(key)(qso_ind) == 0`, that is, the lines of sight
-  either not considered by the DLA search or considered but not
-  flagged as containing a DLA, are empty. The others contain a list of
-  decimal logarithmic column densities (in units cm^-2) for any DLAs
-  flagged along the line of sight by the search. For the key
-  `dr12q_visual`, the flagged DLAs have absorber redshift coded as
-  having column density log N_HI = 20.3, as the visual inspection did
-  not record the column density. In the case of lines of sight
-  containing multiple flagged DLAs, the order of the objects matches
-  the order in `z_dlas`.
-
 learned_zqso_only_model_outdata_full_dr9q_minus_concordance_norm_1176-1256.mat
 --------------------------------------------
 
-The GP model learned for the null model of quasar emission.
+The GP model learned for the null model of quasar emission. Note: we did not
+re-train the model for small-z run. We used the same model we learned from
+spectra from 2.15 < zQSO.
 
 * `M`: (size 8361x20) the learned "eigenspectra" for the null model
 * `initial_M`: (size 8361x20) the initial guess for `M` fed to the
@@ -157,19 +111,14 @@ ideally would not change too much)
   (string, value: `dr12q`, corresponds to objects in `zqso_only_catalog.mat` and
   `preloaded_zqso_only_qsos.mat`)
 
-preloaded_zqso_only_qsos.mat
+preloaded_zqso_smallz_qsos.mat
 ------------------
 
-Preloaded, truncated, and normalized QSO spectra. Each spectrum not
-filtered from the search is loaded and:
+We do not truncate or normalize QSO spectra during preloading. But we built the
+pixel_mask based on:
 
 * pixels with inverse noise variance set to 0 by the SDSS pipeline or
   with flag `BRIGHTSKY` set in the "and" mask are masked
-* the median flux among nonmasked pixels in the range [1270, 1290]
-  Angstroms QSO rest is computed as a normalizer
-* the flux and pipeline noise is normalized by dividing by the computed
-  normalizer
-* pixels outside the range [910, 1217] Angstroms QSO rest are discarded
 
 The results of this initial preprocessing are stored here as arrays of
 length N = 297301. All variables corresponding to filtered
@@ -197,12 +146,11 @@ Additionally, several loading parameters are stored:
 * `normalization_min_lambda`: This is not used in the script anymore since we don't
     normalize during preloading.
 
-processed_zqso_only_qsos_dr12q-100_uniformprior.mat
+processed_zqso_smallz_qsos_dr12q-100_1-16014_1176-1256_outdata_normout_oc0.mat
 ------------------------
 
-The results of the redshift estimations on the 158979 (158841 after removing NaN
-results) nonfiltered lines of sight (`filter_flags == 0` in
-`zqso_only_catalog.mat`).
+The results of the redshift estimations on the 16013 nonfiltered lines of sight
+(`filter_flags == 0` in `zqso_only_catalog.mat`).
 
 * `all_exceptions`: all the empty spectra in `preloaded_qsos.mat`.
 * `all_posdeferrors`: all spectra encountered MATLAB's positive definite errors
@@ -225,20 +173,15 @@ results) nonfiltered lines of sight (`filter_flags == 0` in
 * `z_qsos`: catalogue values of zQSOs.
 * `z_true`: same as `z_qsos`.
 
-hist2d_z_map_vs_z_true_pure-z-log.pdf
+hist2d_z_map_vs_z_true_pure-z.pdf
 ----
 
 A 2D histogram indicating the predictions versus ground truth.
 
-Redshift_1.9_to_2.15
+pdf_smallz_100QSOs
 ----
 
-A folder has the results of the lower redshift run (1.9 <= zQSO <= 2.15).
-
-pdf_dr12q_misfit_plots
-----
-
-A folder of the plots of misfit spectra (|z_map - z_true| > 0.5).
+A folder of the plots of first 100 QSOs in the smallz catalog.
 
 ================================================================================
 (End)          Roman Garnett [Washington University in St. Louis]           2017
