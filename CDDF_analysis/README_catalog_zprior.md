@@ -157,7 +157,7 @@ ideally would not change too much)
   (string, value: `dr12q`, corresponds to objects in `zqso_only_catalog.mat` and
   `preloaded_zqso_only_qsos.mat`)
 
-preloaded_zqso_only_qsos.mat
+processed_zqso_only_qsos_dr12q-100.mat
 ------------------
 
 We do not truncate or normalize QSO spectra during preloading. But we built the
@@ -192,12 +192,15 @@ Additionally, several loading parameters are stored:
 * `normalization_min_lambda`: This is not used in the script anymore since we don't
     normalize during preloading.
 
-processed_zqso_only_qsos_dr12q-100_uniformprior.mat
+processed_zqso_only_qsos_dr12q-100.mat
 ------------------------
 
-The results of the redshift estimations on the 158979 (158841 after removing NaN
+The results of the redshift estimations on the 162861 (158821 after removing NaN
 results) nonfiltered lines of sight (`filter_flags == 0` in
 `zqso_only_catalog.mat`).
+Note: the test_ind here is a little bit different from the uniform prior run,
+due to data-driven prior run was an earlier version. The result in the paper
+used the uniform prior run.
 
 * `all_exceptions`: all the empty spectra in `preloaded_qsos.mat`.
 * `all_posdeferrors`: all spectra encountered MATLAB's positive definite errors
@@ -220,28 +223,12 @@ results) nonfiltered lines of sight (`filter_flags == 0` in
 * `z_qsos`: catalogue values of zQSOs.
 * `z_true`: same as `z_qsos`.
 
-dr12q_results.dat
-----
-
-The result of z_map in a ascii file. The order of columns is the same as the
-following:
-
-* `thing_id`: SDSS unique identifier (DR12Q catalog, variable
-  `THING_ID`)
-* `z_map`: the maximum a posteriori estimation of zQSO.
-* `z_true`: catalogue values of zQSOs.
-
 hist2d_z_map_vs_z_true_pure-z-log.pdf
 ----
 
 A 2D histogram indicating the predictions versus ground truth.
 
-Redshift_1.9_to_2.15
-----
-
-A folder has the results of the lower redshift run (1.9 <= zQSO <= 2.15).
-
-pdf_dr12q_misfit_plots
+pdf_dr12q_misfits
 ----
 
 A folder of the plots of misfit spectra (|z_map - z_true| > 0.5).
