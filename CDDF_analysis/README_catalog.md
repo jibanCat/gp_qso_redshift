@@ -225,6 +225,17 @@ results) nonfiltered lines of sight (`filter_flags == 0` in
 * `z_qsos`: catalogue values of zQSOs.
 * `z_true`: same as `z_qsos`.
 
+dr12q_results.dat
+----
+
+The result of z_map in a ascii file. The order of columns is the same as the
+following:
+
+* `thing_id`: SDSS unique identifier (DR12Q catalog, variable
+  `THING_ID`)
+* `z_map`: the maximum a posteriori estimation of zQSO.
+* `z_true`: catalogue values of zQSOs.
+
 hist2d_z_map_vs_z_true_pure-z-log.pdf
 ----
 
