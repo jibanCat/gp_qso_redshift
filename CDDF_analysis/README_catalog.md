@@ -47,55 +47,7 @@ variables are:
 * `z_qsos`: visual inspection QSO redshift from DR12Q (DR12Q catalog,
   variable `Z_VI`)
 
-The `zqso_only_catalog.mat` file also contains data relating to the results of
-previous DLA searches, contained in a series of hash tables. Each
-table has three keys corresponding to the search:
-(Note: the code provided on GitHub: https://github.com/sbird/gp_qso_redshift
-does not include DLA catalogue. The catalog file here runs on both zestiamtion
-and DLA finding, that's the discrepancy.)
-
-* `dr9q_concordance`, containing the concordance catalog from the
-  [BOSS DR9 Lyman-alpha Forest Catalog and Sample](https://www.sdss3.org/dr9/algorithms/lyaf_sample.php)
-  ([Lee, et al. 2013](http://adsabs.harvard.edu/abs/2013AJ....145...69L)),
-* `dr12q_visual`, containing the results of a visual survey (extracted
-   from
-   ([Noterdaeme DR12 catalog v2, 2016](http://www2.iap.fr/users/noterdae/DLA/DLA_DR12_v2.tgz))),
-* `dr12q_noterdaeme`, containing the results of the method from
-   ([Noterdaeme et al., 2012c](http://adsabs.harvard.edu/abs/2012A%26A...547L...1N)),
-   available at
-   ([Noterdaeme DR12 catalog v2, 2016](http://www2.iap.fr/users/noterdae/DLA/DLA_DR12_v2.tgz)).
-
-The hash tables are:
-
-* `los_inds`: Each key maps to a binary vector of length N. A value
-  of 1 indicates the line of sight was considered in the corresponding
-  search.
-* `dla_inds`: Each key maps to a binary vector of length N. A value
-  of 1 indicates the line of sight was considered in the corresponding
-  search and flagged as containing a DLA.
-* `z_dlas`: Each key maps to a map of length N. The entries for which
-  `dla_inds(key)(qso_ind) == 0`, that is, the lines of sight either
-  not considered by the DLA search or considered but not flagged as
-  containing a DLA, are empty. The others contain a list of absorber
-  redshifts for any DLAs flagged along the line of sight by the
-  search. For the key `dr12q_visual`, the flagged DLAs have absorber
-  redshift coded as the QSO redshift, as the visual inspection did not
-  record the absorber redshift. In the case of lines of sight
-  containing multiple flagged DLAs, the order of the objects matches
-  the order in `log_nhis` below.
-* `log_nhis`: Each key maps to a map of length N. The entries for
-  which `dla_inds(key)(qso_ind) == 0`, that is, the lines of sight
-  either not considered by the DLA search or considered but not
-  flagged as containing a DLA, are empty. The others contain a list of
-  decimal logarithmic column densities (in units cm^-2) for any DLAs
-  flagged along the line of sight by the search. For the key
-  `dr12q_visual`, the flagged DLAs have absorber redshift coded as
-  having column density log N_HI = 20.3, as the visual inspection did
-  not record the column density. In the case of lines of sight
-  containing multiple flagged DLAs, the order of the objects matches
-  the order in `z_dlas`.
-
-learned_zqso_only_model_outdata_full_dr9q_minus_concordance_norm_1176-1256.mat
+learned_zqso_only_model_outdata_normout_dr9q_minus_concordance_norm_1176-1256
 --------------------------------------------
 
 The GP model learned for the null model of quasar emission.
@@ -104,11 +56,11 @@ The GP model learned for the null model of quasar emission.
 * `initial_M`: (size 8361x20) the initial guess for `M` fed to the
   optimization routine
 * `bluewards_mu`: the learned blueward mean value (assuming blueward flux is
-    drawing from an iid Guassian). (value: 0.162)
+    drawing from an iid Guassian). (value: 0.147)
 * `bluewards_sigma`: the learned blueward standard deviation (assuming blueward
-    flux is drawing from an iid Guassian). (value: 0.047)
+    flux is drawing from an iid Guassian). (value: 0.044)
 * `log_likelihood`: the log likelihood of the training data given the
-  learned parameters (value: -2.398 x 10^8)
+  learned parameters (value: -2.56 x 10^8)
 * `max_noise_variance`: the maximum normalized pixel noise variance
   considered during the training routine (value: 16)
 * `minFunc_options`: the options passed into the `minFunc`
@@ -139,7 +91,7 @@ The GP model learned for the null model of quasar emission.
 * `rest_wavelengths`: (size 8361x1) the rest wavelengths in Angstroms
   on which the model was learned
 * `redwards_mu`: the learned redward mean value (assuming redward flux is
-    drawing from an iid Guassian). (value: 0.1281)
+    drawing from an iid Guassian). (value: 0.1287)
 * `redwards_sigma`: the learned redward standard deviation (assuming redward
     flux is drawing from an iid Guassian). (value: 0.0028)
 * `train_ind`: (size 297301x1) a binary vector indicating which
@@ -192,12 +144,11 @@ Additionally, several loading parameters are stored:
 * `normalization_min_lambda`: This is not used in the script anymore since we don't
     normalize during preloading.
 
-processed_zqso_only_qsos_dr12q-100_uniformprior.mat
+processed_zqso_only_qsos_dr12q-100.mat
 ------------------------
 
-The results of the redshift estimations on the 158979 (158841 after removing NaN
-results) nonfiltered lines of sight (`filter_flags == 0` in
-`zqso_only_catalog.mat`).
+The results of the redshift estimations on the 158979 nonfiltered lines of sight
+(`filter_flags == 0` in `zqso_only_catalog.mat`).
 
 * `all_exceptions`: all the empty spectra in `preloaded_qsos.mat`.
 * `all_posdeferrors`: all spectra encountered MATLAB's positive definite errors
