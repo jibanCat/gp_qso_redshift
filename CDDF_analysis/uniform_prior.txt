@@ -1,0 +1,9 @@
+# README
+
+- misfit rate : |z_map - z_true| > 0.5 : 0.41%
+- Misfits :  645
+- MSE: 0.00511
+- total number of qsos (exclude NaNs): 158979
+
+- Re-run everything from build_catalog.m, preload_qsos.m, learn_qso_model.m, to processed_qsos.m.
+so the spectra are up-to-date.
