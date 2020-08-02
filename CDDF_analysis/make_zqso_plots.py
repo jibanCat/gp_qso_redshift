@@ -29,11 +29,11 @@ def generate_qsos(base_directory="", release="dr12q",
     preloaded_file = os.path.join( 
         base_directory, processed_directory(release), "preloaded_zqso_only_qsos.mat")
     processed_file  = os.path.join(
-        base_directory, processed_directory(release), "processed_zqso_only_qsos_dr12q-100_uniformprior.mat" )
+        base_directory, processed_directory(release), "processed_zqso_only_qsos_dr12q-100.mat" )
     catalogue_file = os.path.join(
         base_directory, processed_directory(release), "zqso_only_catalog.mat")
     learned_file   = os.path.join(
-        base_directory, processed_directory(release), "learned_zqso_only_model_outdata_full_dr9q_minus_concordance_norm_1176-1256.mat")
+        base_directory, processed_directory(release), "learned_zqso_only_model_outdata_normout_dr9q_minus_concordance_norm_1176-1256.mat")
     sample_file    = os.path.join(
         base_directory, processed_directory(release), "dla_samples.mat")
 
