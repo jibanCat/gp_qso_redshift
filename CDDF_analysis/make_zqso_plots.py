@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 
 from .set_parameters import *
-from .qso_loader import QSOLoaderZ
+from .qso_loader import QSOLoaderZ, make_fig
 from .qso_loader import search_index_from_another
 
 # change fontsize
@@ -334,13 +334,16 @@ def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25,
         z_nearest = qsos.offset_samples_qso[idx]
 
         # plot of sample posteriors
+        make_fig()
         plt.scatter(qsos.offset_samples_qso[ind],
             this_sample_log_posteriors[ind],
             color="red", alpha=0.5,  # not need for label, duplicate to y-axis
             rasterized=True)
         plt.xlabel(r"$z_{QSO}$ samples")
         plt.ylabel("log posteriors")
-        save_figure("{}_likelihood_samples".format(str(i).zfill(4)))
+        plt.ylim(-50000, 1000)
+        plt.xlim(zmin, zmax)
+        plt.savefig("animation/{}_likelihood_samples.png".format(str(i).zfill(4)), format="png", dpi=200)
         plt.close()
         plt.clf()
 
@@ -350,6 +353,7 @@ def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25,
             num_forest_lines=0, z_sample=z_nearest,
             suppressed=False)
         plt.ylim(-1, 5)
-        save_figure("{}_this_mu".format(str(i).zfill(4)))
+        plt.xlim(900, 3100)
+        plt.savefig("animation/{}_this_mu.png".format(str(i).zfill(4)), format="png", dpi=200)
         plt.close()
         plt.clf()
