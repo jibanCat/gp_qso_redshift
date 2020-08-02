@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 
 from .set_parameters import *
-from .qso_loader import QSOLoaderZ
+from .qso_loader import QSOLoaderZ, make_fig
 from .qso_loader import search_index_from_another
 
 # change fontsize
@@ -29,11 +29,11 @@ def generate_qsos(base_directory="", release="dr12q",
     preloaded_file = os.path.join( 
         base_directory, processed_directory(release), "preloaded_zqso_only_qsos.mat")
     processed_file  = os.path.join(
-        base_directory, processed_directory(release), "processed_zqso_only_qsos_dr12q-100_uniformprior.mat" )
+        base_directory, processed_directory(release), "processed_zqso_only_qsos_dr12q-100.mat" )
     catalogue_file = os.path.join(
         base_directory, processed_directory(release), "zqso_only_catalog.mat")
     learned_file   = os.path.join(
-        base_directory, processed_directory(release), "learned_zqso_only_model_outdata_full_dr9q_minus_concordance_norm_1176-1256.mat")
+        base_directory, processed_directory(release), "learned_zqso_only_model_outdata_normout_dr9q_minus_concordance_norm_1176-1256.mat")
     sample_file    = os.path.join(
         base_directory, processed_directory(release), "dla_samples.mat")
 
@@ -312,3 +312,48 @@ def do_velocity_dispersions(qsos, dr12q_fits='data/dr12q/distfiles/DR12Q.fits'):
     print('Median: z_to_kms( Z_MGII - Z_PCA )', np.median(z_to_kms( Z_MGII - Z_PCA )))
     print('Median: z_to_kms( Z_PIPE - Z_PCA )', np.median(z_to_kms( Z_PIPE - Z_PCA )))
     print('Median: z_to_kms( z_map - Z_PCA )',  np.median(z_to_kms( z_map - Z_PCA )))
+
+def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25, zmax: float = 6.):
+    """
+    Make an animation of ( model shifting w.r.t z_qso, likelihood w.r.t z_qso ).
+    """
+    # loading from files to save memory
+    nspec_nan = np.where(~qsos.nan_inds)[0][nspec]
+    this_sample_log_posteriors = qsos.sample_log_posteriors[:, nspec_nan]
+
+    assert qsos.processed_file['z_true'][0, nspec_nan] == qsos.z_true[nspec]
+
+    # a list of zQSOs I want to plot
+    all_z_qsos = np.linspace(zmax, zmin, 50)
+
+    for i,z_sample in enumerate(all_z_qsos):
+        # find all offset samples lower than this z_sample
+        ind = (qsos.offset_samples_qso >= z_sample)
+        # find the neast idx to the z_sample
+        idx = np.argmin(np.abs(qsos.offset_samples_qso - z_sample))
+        z_nearest = qsos.offset_samples_qso[idx]
+
+        # plot of sample posteriors
+        make_fig()
+        plt.scatter(qsos.offset_samples_qso[ind],
+            this_sample_log_posteriors[ind],
+            color="red", alpha=0.5,  # not need for label, duplicate to y-axis
+            rasterized=True)
+        plt.xlabel(r"$z_{QSO}$ samples")
+        plt.ylabel("log posteriors")
+        plt.ylim(-50000, 1000)
+        plt.xlim(zmin, zmax)
+        plt.savefig("animation/{}_likelihood_samples.png".format(str(i).zfill(4)), format="png", dpi=200)
+        plt.close()
+        plt.clf()
+
+        # plot the mean model and data
+        # saving plots: True QSO rest-frame
+        qsos.plot_this_mu(nspec=nspec, 
+            num_forest_lines=0, z_sample=z_nearest,
+            suppressed=False)
+        plt.ylim(-1, 5)
+        plt.xlim(900, 3100)
+        plt.savefig("animation/{}_this_mu.png".format(str(i).zfill(4)), format="png", dpi=200)
+        plt.close()
+        plt.clf()
