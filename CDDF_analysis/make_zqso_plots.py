@@ -312,3 +312,44 @@ def do_velocity_dispersions(qsos, dr12q_fits='data/dr12q/distfiles/DR12Q.fits'):
     print('Median: z_to_kms( Z_MGII - Z_PCA )', np.median(z_to_kms( Z_MGII - Z_PCA )))
     print('Median: z_to_kms( Z_PIPE - Z_PCA )', np.median(z_to_kms( Z_PIPE - Z_PCA )))
     print('Median: z_to_kms( z_map - Z_PCA )',  np.median(z_to_kms( z_map - Z_PCA )))
+
+def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25, zmax: float = 6.):
+    """
+    Make an animation of ( model shifting w.r.t z_qso, likelihood w.r.t z_qso ).
+    """
+    # loading from files to save memory
+    nspec_nan = np.where(~qsos.nan_inds)[0][nspec]
+    this_sample_log_posteriors = qsos.sample_log_posteriors[:, nspec_nan]
+
+    assert qsos.processed_file['z_true'][0, nspec_nan] == qsos.z_true[nspec]
+
+    # a list of zQSOs I want to plot
+    all_z_qsos = np.linspace(zmax, zmin, 50)
+
+    for i,z_sample in enumerate(all_z_qsos):
+        # find all offset samples lower than this z_sample
+        ind = (qsos.offset_samples_qso >= z_sample)
+        # find the neast idx to the z_sample
+        idx = np.argmin(np.abs(qsos.offset_samples_qso - z_sample))
+        z_nearest = qsos.offset_samples_qso[idx]
+
+        # plot of sample posteriors
+        plt.scatter(qsos.offset_samples_qso[ind],
+            this_sample_log_posteriors[ind],
+            color="red", alpha=0.5,  # not need for label, duplicate to y-axis
+            rasterized=True)
+        plt.xlabel(r"$z_{QSO}$ samples")
+        plt.ylabel("log posteriors")
+        save_figure("{}_likelihood_samples".format(str(i).zfill(4)))
+        plt.close()
+        plt.clf()
+
+        # plot the mean model and data
+        # saving plots: True QSO rest-frame
+        qsos.plot_this_mu(nspec=nspec, 
+            num_forest_lines=0, z_sample=z_nearest,
+            suppressed=False)
+        plt.ylim(-1, 5)
+        save_figure("{}_this_mu".format(str(i).zfill(4)))
+        plt.close()
+        plt.clf()
