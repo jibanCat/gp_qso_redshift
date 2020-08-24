@@ -68,41 +68,11 @@ dla_inds = containers.Map();
 z_dlas   = containers.Map();
 log_nhis = containers.Map();
 
-% load available DLA catalogs
-for catalog_name = {'dr9q_concordance', 'dr12q_noterdaeme', 'dr12q_visual'}
-
-  % determine lines of sight searched in this catalog
-  los_catalog = ...
-      load(sprintf('%s/los_catalog', dla_catalog_directory(catalog_name{:})));
-  los_inds(catalog_name{:}) = ismember(thing_ids, los_catalog);
-
-  dla_catalog = ...
-      load(sprintf('%s/dla_catalog', dla_catalog_directory(catalog_name{:})));
-
-  % determine DLAs flagged in this catalog
-  [dla_inds(catalog_name{:}), ind] = ismember(thing_ids, dla_catalog(:, 1));
-  ind = find(ind);
-
-  % determine lists of DLA parameters for identified DLAs, when
-  % available
-  this_z_dlas   = cell(num_quasars, 1);
-  this_log_nhis = cell(num_quasars, 1);
-  for i = 1:numel(ind)
-    this_dla_ind = (dla_catalog(:, 1) == thing_ids(ind(i)));
-    this_z_dlas{ind(i)}   = dla_catalog(this_dla_ind, 2);
-    this_log_nhis{ind(i)} = dla_catalog(this_dla_ind, 3);
-  end
-  z_dlas(  catalog_name{:}) = this_z_dlas;
-  log_nhis(catalog_name{:}) = this_log_nhis;
-
-end
-
 % save catalog
 release = 'dr14q';
 variables_to_save = {'sdss_names', 'ras', 'decs', 'thing_ids', 'plates', ...
                      'mjds', 'fiber_ids', 'z_qsos', ...  %'snrs', ...
                      'bal_visual_flags', 'in_dr9', 'in_dr10', 'filter_flags', ...
-                     'los_inds', 'dla_inds', 'z_dlas', 'log_nhis', ...
                      'zwarning', 'in_dr12'};
 save(sprintf('%s/catalog', processed_directory(release)), ...
     variables_to_save{:}, '-v7.3');
