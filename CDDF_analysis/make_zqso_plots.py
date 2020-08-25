@@ -386,3 +386,50 @@ def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25,
         plt.savefig("animation/{}_this_mu.png".format(str(i).zfill(4)), format="png", dpi=200)
         plt.close()
         plt.clf()
+
+def do_hist2d_with_other_measurements(qsos: QSOLoaderZ, z_name: str = "Z_PCA", dr12q_fits: str = 'data/dr12q/distfiles/DR12Q.fits'):
+    """
+    We need hist2d for other z measurements in the SDSS DR12Q
+    """
+    dr12q = fits.open(dr12q_fits)
+
+    # acquire the table data in SDSS DR12Q paper; Table 4.
+    table = dr12q[1].data
+
+    Z_SDSS   = table[z_name]
+
+    # filter out non-detections (were labeled as -1)
+    ind = Z_SDSS != -1
+
+    z_map_ind = ind[qsos.test_ind]
+
+    # include the test_ind we applied during testing
+    ind = ind & qsos.test_ind
+
+    # only take the intersection between these two
+    Z_SDSS = Z_SDSS[ind]
+    z_map = qsos.z_map[z_map_ind]
+
+    assert Z_SDSS.shape[0] == z_map.shape[0]
+    assert (Z_SDSS == -1).sum() == 0
+
+    print("[Info] Number of Quasars after taking the intersection of two redshift measurements", Z_SDSS.shape[0])
+
+    index = (np.abs(Z_SDSS - z_map) > 0.5)
+
+    print("Misfits : ", index.sum())
+    print("Misfit Rate : ", index.sum() / index.shape[0])
+    print("MSE z_true-z_map : {:.3g}".format( np.mean( (z_map - Z_SDSS)**2 )  ))
+
+    # 2D histogram
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    (h, xedges, yedges, im) = ax.hist2d(z_map, Z_SDSS,
+        bins = int(np.sqrt(z_map.shape[0])/2), cmap='gray_r', norm=matplotlib.colors.LogNorm())
+    ax.set_ylim(2.1, 6.2)
+    ax.set_xlim(2.1, 6.2)
+    ax.set_xlabel(r"$z_{{QSO,MAP}}$")
+    ax.set_ylabel(r"$" + "{}_{}".format(z_name.split("_")[0].lower(), "{" + z_name.split("_")[1] + "}") + r"$")
+    fig.colorbar(im, ax=ax)
+    save_figure("hist2d_z_map_vs_{}".format(z_name))
+    plt.clf()
+    plt.close()
