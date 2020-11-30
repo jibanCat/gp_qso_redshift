@@ -13,9 +13,9 @@ from .qso_loader import QSOLoaderZ, make_fig
 from .qso_loader import search_index_from_another
 
 # change fontsize
-matplotlib.rcParams.update({'font.size' : 14})
+matplotlib.rcParams.update({'font.size' : 18})
 
-# matplotlib.use('PDF')
+matplotlib.use('PDF')
 
 save_figure = lambda filename : plt.savefig("{}.pdf".format(filename), format="pdf", dpi=300)
 
@@ -57,8 +57,8 @@ def do_procedure_plots(qsos, model_min_lambda=910, model_max_lambda=3000):
         qsos.GP.rest_wavelengths, qsos.GP.mu, label=r"$\mu$ (prior mean)")
 
     ax.legend()
-    ax.set_xlabel(r"Restframe wavelengths $\lambda_{\mathrm{rest}}$ $\AA$")
-    ax.set_ylabel(r"Normalized flux")
+    ax.set_xlabel(r"Rest-frame Wavelength ($\AA$)")
+    ax.set_ylabel(r"Normalized Flux")
     ax.set_xlim([min_lambda, max_lambda])
 
     ax02 = ax.twiny()
@@ -86,7 +86,7 @@ def do_procedure_plots(qsos, model_min_lambda=910, model_max_lambda=3000):
     scale = np.shape(qsos.GP.C)[0] / ( max_lambda - min_lambda )
 
     fig, ax = plt.subplots(figsize=(8,8))
-    im = ax.imshow(qsos.GP.C, origin="lower", cmap="gray_r")
+    im = ax.imshow(qsos.GP.C, origin="lower", cmap="viridis")
     ax.set_xticks(
         [
          (lyman_limit    - min_lambda) * scale,
@@ -96,11 +96,13 @@ def do_procedure_plots(qsos, model_min_lambda=910, model_max_lambda=3000):
          (siiv_wavelength - min_lambda) * scale,
          (ciii_wavelength - min_lambda) * scale,
          (mgii_wavelength - min_lambda) * scale,
-        ]
+        ],
     )
     ax.set_xticklabels([r"Ly$\infty$", r"Ly$\beta$", r"Ly$\alpha$", 
                         r"C$_{IV}$", r"Si$_{IV}$", r"C$_{III}$",
-                        r"Mg$_{II}$"])
+                        r"Mg$_{II}$"],
+                        rotation=45,
+)
     ax.set_yticks(
         [
          (lyman_limit    - min_lambda) * scale,
@@ -139,9 +141,9 @@ def do_plot_misfit(qsos, delta_z=0.5):
     (h, xedges, yedges, im) = ax.hist2d(qsos.z_map, qsos.z_true,
         bins = int(np.sqrt(qsos.z_map.shape[0])/2), cmap='gray_r', norm=matplotlib.colors.LogNorm())
     ax.set_xlabel(r"$z_{{QSO,MAP}}$")
-    ax.set_ylabel(r"$z_{{QSO,catalog}}$")
+    ax.set_ylabel(r"$z_{{PCA}}$")
     fig.colorbar(im, ax=ax)
-    save_figure("hist2d_z_map_vs_z_true_pure-z-log")
+    save_figure("hist2d_z_map_vs_z_pca-z-log")
     plt.clf()
     plt.close()
 
@@ -191,9 +193,12 @@ def do_plot_thing_ids(qsos, selected_thing_ids=[544031279, 27885089]):
 
     for nspec in all_nspecs:
         print("Plotting {}/{} ...".format(nspec, len(qsos.z_qsos)))
+        print("[Info] zQSO = {:.5g}".format(qsos.z_qsos[nspec]))
+        print("[Info] zMAP = {:.5g}".format(qsos.z_map[nspec]))
 
         # saving plots: z_samples versus poseteriors
         qsos.plot_z_sample_posteriors(nspec, dla_samples=True)
+        plt.tight_layout()
         plt.savefig("{}_posterior_zqso_samples.pdf".format(
                 qsos.thing_ids[nspec]),
                 dpi=150, format='pdf')
@@ -204,7 +209,8 @@ def do_plot_thing_ids(qsos, selected_thing_ids=[544031279, 27885089]):
         qsos.plot_this_mu(nspec=nspec, 
             num_forest_lines=0, z_sample=qsos.z_map[nspec],
             suppressed=False)
-        plt.ylim(-1, 5)        
+        plt.ylim(-1, 5)
+        plt.tight_layout()    
         save_figure(
             "{}_this_mu_ZMAP".format(
                 qsos.thing_ids[nspec]))
@@ -216,6 +222,7 @@ def do_plot_thing_ids(qsos, selected_thing_ids=[544031279, 27885089]):
             num_forest_lines=0, z_sample=qsos.z_qsos[nspec],
             suppressed=False)
         plt.ylim(-1, 5)
+        plt.tight_layout()                
         save_figure(
             "{}_this_mu_ZTrue".format(
                 qsos.thing_ids[nspec]))
@@ -234,9 +241,12 @@ def do_plot_example(qsos, nspec=18):
         num_voigt_lines=3, num_forest_lines=0, z_sample=z,
         suppressed=qsos.suppressed)
     plt.ylim(-1, 5)
+    plt.tight_layout()    
     save_figure("{}_this_mu_delta_z_{:.2g}".format(
         qsos.thing_ids[nspec], z))
-    
+    plt.clf()
+    plt.close()
+
     # a plot with a wrong zsample
     z = 3.5
 
@@ -244,9 +254,11 @@ def do_plot_example(qsos, nspec=18):
         num_voigt_lines=3, num_forest_lines=0, z_sample=z,
         suppressed=qsos.suppressed)
     plt.ylim(-1, 5)
+    plt.tight_layout()
     save_figure("{}_this_mu_delta_z_{:.2g}".format(
         qsos.thing_ids[nspec], z))
-    
+    plt.clf()
+    plt.close()
 
 def do_velocity_dispersions(qsos, dr12q_fits='data/dr12q/distfiles/DR12Q.fits'):
     '''
@@ -282,27 +294,31 @@ def do_velocity_dispersions(qsos, dr12q_fits='data/dr12q/distfiles/DR12Q.fits'):
     
     z_map = qsos.z_map[z_map_ind]
 
+    print("Number of Quasars in Comparison: ", z_map.shape[0])
+
     bins = np.linspace(-7500, 7500, 15000 // 100)
 
+    plt.figure(figsize=(8, 8))
     plt.hist( z_to_kms( Z_VI - Z_PCA ), bins=bins, histtype='step', label='Z_VI')
     plt.hist( z_to_kms( Z_MGII - Z_PCA ), bins=bins, histtype='step', label='Z_MGII')
     plt.hist( z_to_kms( Z_PIPE - Z_PCA ), bins=bins, histtype='step', label='Z_PIPE')
     plt.hist( z_to_kms( Z_CIV - Z_PCA ), bins=bins, histtype='step', label='Z_CIV')
     plt.hist( z_to_kms( Z_CIII - Z_PCA ), bins=bins, histtype='step', label='Z_CIII')
     plt.xlabel('$\Delta v (z_x - z_{PCA})$ (km/s)')
-    plt.ylabel('Number of quasars')
+    plt.ylabel('Number of Quasars')
     plt.legend()
     plt.tight_layout()
     save_figure("SDSS_DR12Q_Figure7")
     plt.clf()
     plt.close()
 
+    plt.figure(figsize=(8, 8))
     plt.hist( z_to_kms( Z_VI - Z_PCA ), bins=bins, histtype='step', label='Z_VI', ls='--')
     plt.hist( z_to_kms( Z_MGII - Z_PCA ), bins=bins, histtype='step', label='Z_MGII', ls='--')
     plt.hist( z_to_kms( Z_PIPE - Z_PCA ), bins=bins, histtype='step', label='Z_PIPE', ls='--')
     plt.hist( z_to_kms( z_map - Z_PCA ), bins=bins, histtype='step', label='$z_{MAP}$', lw=2)
     plt.xlabel('$\Delta v (z_x - z_{PCA})$ (km/s)')
-    plt.ylabel('Number of quasars')
+    plt.ylabel('Number of Quasars')
     plt.legend()
     plt.tight_layout()
     save_figure("SDSS_DR12Q_Figure7_w_ZMAP")
@@ -312,6 +328,19 @@ def do_velocity_dispersions(qsos, dr12q_fits='data/dr12q/distfiles/DR12Q.fits'):
     print('Median: z_to_kms( Z_MGII - Z_PCA )', np.median(z_to_kms( Z_MGII - Z_PCA )))
     print('Median: z_to_kms( Z_PIPE - Z_PCA )', np.median(z_to_kms( Z_PIPE - Z_PCA )))
     print('Median: z_to_kms( z_map - Z_PCA )',  np.median(z_to_kms( z_map - Z_PCA )))
+
+    print('Standard deviation: z_to_kms( Z_VI - Z_PCA )',   np.sqrt(np.sum(z_to_kms( Z_VI - Z_PCA )**2   ) / (Z_PCA.shape[0] - 1)) )
+    print('Standard deviation: z_to_kms( Z_MGII - Z_PCA )', np.sqrt(np.sum(z_to_kms( Z_MGII - Z_PCA )**2 ) / (Z_PCA.shape[0] - 1)) )
+    print('Standard deviation: z_to_kms( Z_PIPE - Z_PCA )', np.sqrt(np.sum(z_to_kms( Z_PIPE - Z_PCA )**2 ) / (Z_PCA.shape[0] - 1)) )
+    print('Standard deviation: z_to_kms( z_map - Z_PCA )',  np.sqrt(np.sum(z_to_kms( z_map - Z_PCA )**2  ) / (Z_PCA.shape[0] - 1)) )
+
+    IQR = lambda values : np.percentile(values, 0.75) - np.percentile(values, 0.25)
+
+    print('IQR: z_to_kms( Z_VI - Z_PCA )',   IQR(z_to_kms( Z_VI - Z_PCA )))
+    print('IQR: z_to_kms( Z_MGII - Z_PCA )', IQR(z_to_kms( Z_MGII - Z_PCA )))
+    print('IQR: z_to_kms( Z_PIPE - Z_PCA )', IQR(z_to_kms( Z_PIPE - Z_PCA )))
+    print('IQR: z_to_kms( z_map - Z_PCA )',  IQR(z_to_kms( z_map - Z_PCA )))
+
 
 def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25, zmax: float = 6.):
     """
@@ -357,3 +386,50 @@ def make_animation_zestimation(qsos: QSOLoaderZ, nspec: int, zmin: float = 2.25,
         plt.savefig("animation/{}_this_mu.png".format(str(i).zfill(4)), format="png", dpi=200)
         plt.close()
         plt.clf()
+
+def do_hist2d_with_other_measurements(qsos: QSOLoaderZ, z_name: str = "Z_PCA", dr12q_fits: str = 'data/dr12q/distfiles/DR12Q.fits'):
+    """
+    We need hist2d for other z measurements in the SDSS DR12Q
+    """
+    dr12q = fits.open(dr12q_fits)
+
+    # acquire the table data in SDSS DR12Q paper; Table 4.
+    table = dr12q[1].data
+
+    Z_SDSS   = table[z_name]
+
+    # filter out non-detections (were labeled as -1)
+    ind = Z_SDSS != -1
+
+    z_map_ind = ind[qsos.test_ind]
+
+    # include the test_ind we applied during testing
+    ind = ind & qsos.test_ind
+
+    # only take the intersection between these two
+    Z_SDSS = Z_SDSS[ind]
+    z_map = qsos.z_map[z_map_ind]
+
+    assert Z_SDSS.shape[0] == z_map.shape[0]
+    assert (Z_SDSS == -1).sum() == 0
+
+    print("[Info] Number of Quasars after taking the intersection of two redshift measurements", Z_SDSS.shape[0])
+
+    index = (np.abs(Z_SDSS - z_map) > 0.5)
+
+    print("Misfits : ", index.sum())
+    print("Misfit Rate : ", index.sum() / index.shape[0])
+    print("MSE z_true-z_map : {:.3g}".format( np.mean( (z_map - Z_SDSS)**2 )  ))
+
+    # 2D histogram
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    (h, xedges, yedges, im) = ax.hist2d(z_map, Z_SDSS,
+        bins = int(np.sqrt(z_map.shape[0])/2), cmap='gray_r', norm=matplotlib.colors.LogNorm())
+    ax.set_ylim(2.1, 6.2)
+    ax.set_xlim(2.1, 6.2)
+    ax.set_xlabel(r"$z_{{QSO,MAP}}$")
+    ax.set_ylabel(r"$" + "{}_{}".format(z_name.split("_")[0].lower(), "{" + z_name.split("_")[1] + "}") + r"$")
+    fig.colorbar(im, ax=ax)
+    save_figure("hist2d_z_map_vs_{}".format(z_name))
+    plt.clf()
+    plt.close()

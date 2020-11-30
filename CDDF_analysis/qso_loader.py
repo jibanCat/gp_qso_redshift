@@ -1478,7 +1478,7 @@ class QSOLoaderZ(QSOLoader):
 
         plt.xlabel(r"$z_{QSO}$ samples")
         plt.ylabel("log posteriors")
-        plt.legend()
+        # plt.legend() # not labels really
 
     def plot_this_mu(self, nspec, suppressed=True, num_voigt_lines=3, num_forest_lines=6, 
             label="", new_fig=True, color="red", z_sample=None, plot_error=False):
@@ -1572,9 +1572,9 @@ class QSOLoaderZ(QSOLoader):
             plt.fill_between(rest_wavelengths[ind],
                 this_mu[ind] - 2*this_error, this_mu[ind] + 2*this_error, alpha=0.8, color="orange")
 
-        plt.xlabel(r"Restframe Wavelengths")
+        plt.xlabel(r"Rest-frame Wavelength ($\AA$)")
         plt.ylabel(r"Normalized Flux")
-        plt.legend()
+        plt.legend(loc="upper right")
         
         return rest_wavelengths, this_mu
 
